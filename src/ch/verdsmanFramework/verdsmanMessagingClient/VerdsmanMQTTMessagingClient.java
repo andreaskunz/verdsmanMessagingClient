@@ -38,7 +38,7 @@ public class VerdsmanMQTTMessagingClient extends VerdsmanMessagingClient impleme
 	
 	
 	@Override
-	public void postMessage(VMCTopic topic, VMCMessage message) {
+	public void postMessage(EVMCTopic topic, VMCMessage message) {
 		if(this.clientIsConnected()) {
 			MqttMessage mqttMessage = this.mqttfactory.createMqttMessage();
 			mqttMessage.setQos(2); // TODO use from config.
@@ -61,7 +61,7 @@ public class VerdsmanMQTTMessagingClient extends VerdsmanMessagingClient impleme
 
 
 	@Override
-	protected void registerTopic(VMCTopic topic) {
+	protected void registerTopic(EVMCTopic topic) {
 		if(this.clientIsConnected()) {
 			try {
 				this.mqttclient.subscribe("a38749324753845839124a/todo", 2); // TODO take real topic and QoS
@@ -81,7 +81,7 @@ public class VerdsmanMQTTMessagingClient extends VerdsmanMessagingClient impleme
 	}
 
 	@Override
-	protected void unregisterTopic(VMCTopic topic) {
+	protected void unregisterTopic(EVMCTopic topic) {
 		System.err.println("method not implemented!");
 	}
 

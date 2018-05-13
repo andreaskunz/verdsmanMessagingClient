@@ -6,7 +6,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import ch.verdsmanFramework.verdsmanMessagingClient.VMCExampleUserBot;
 import ch.verdsmanFramework.verdsmanMessagingClient.VMCFactory;
 import ch.verdsmanFramework.verdsmanMessagingClient.VMCMqttFactory;
-import ch.verdsmanFramework.verdsmanMessagingClient.VMCTopic;
+import ch.verdsmanFramework.verdsmanMessagingClient.EVMCTopic;
 import ch.verdsmanFramework.verdsmanMessagingClient.VerdsmanMQTTMessagingClient;
 import ch.verdsmanFramework.verdsmanMessagingClient.VerdsmanMessagingClient;
 
@@ -25,7 +25,7 @@ public class MQTTBotApplication {
 		VMCExampleUserBot bot = new VMCExampleUserBot(botName, vmcFactory);
 		VerdsmanMessagingClient messagingClient = new VerdsmanMQTTMessagingClient(bot, mqttclient, mqttFactory, vmcFactory);
 		bot.setVerdsmanMessagingClient(messagingClient);
-		bot.listenForTopic(VMCTopic.ALL);
+		bot.listenForTopic(EVMCTopic.ALL);
 		bot.startBot();
 	}
 	

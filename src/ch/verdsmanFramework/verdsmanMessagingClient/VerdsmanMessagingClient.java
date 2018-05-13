@@ -7,11 +7,11 @@ public abstract class VerdsmanMessagingClient {
 		this.messageReceiver = receiver;
 	}
 	
-	protected abstract void postMessage(VMCTopic topic, VMCMessage message);
+	protected abstract void postMessage(EVMCTopic topic, VMCMessage message);
 	
-	protected abstract void registerTopic(VMCTopic topic);
+	protected abstract void registerTopic(EVMCTopic topic);
 	
-	protected abstract void unregisterTopic(VMCTopic topic);
+	protected abstract void unregisterTopic(EVMCTopic topic);
 	
 	protected void messageArrived(VMCMessage message) {
 		messageReceiver.messageArrived(message);

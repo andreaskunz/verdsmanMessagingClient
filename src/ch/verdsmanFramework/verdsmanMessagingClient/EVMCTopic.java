@@ -1,6 +1,6 @@
 package ch.verdsmanFramework.verdsmanMessagingClient;
 
-public enum VMCTopic {
+public enum EVMCTopic {
 	ALL,
 	CMD,
 }

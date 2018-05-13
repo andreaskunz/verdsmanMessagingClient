@@ -16,7 +16,7 @@ public class VMCExampleUserBot implements IVMCMessageReceiver {
 		this.messagingClient = messagingClient;
 	}
 	
-	public void listenForTopic(VMCTopic topic) {
+	public void listenForTopic(EVMCTopic topic) {
 		if(messagingClient != null) {
 			this.messagingClient.registerTopic(topic);
 		} else {
@@ -35,7 +35,7 @@ public class VMCExampleUserBot implements IVMCMessageReceiver {
 				VMCMessage message = this.vmcFactory.createVMCMessage();
 				message.content = this.name  + " : " + new Date().toString();
 				message.from = "Bot";
-				this.messagingClient.postMessage(VMCTopic.ALL, message);
+				this.messagingClient.postMessage(EVMCTopic.ALL, message);
 				System.out.println("Bot: message posted");
 				try {
 					Thread.sleep(2000);

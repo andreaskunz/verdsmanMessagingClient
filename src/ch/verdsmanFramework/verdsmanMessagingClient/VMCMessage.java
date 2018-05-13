@@ -4,7 +4,9 @@ public class VMCMessage {
 	public String from;
 	public String to;
 	public String topic;
-	public String content;
+	public String contenttype;
+	public Object content; // TODO improve typing with subtype polymorphism. Improve VMCMessageJSONParser methods.
+	
 	
 	@Override
 	public String toString() {
