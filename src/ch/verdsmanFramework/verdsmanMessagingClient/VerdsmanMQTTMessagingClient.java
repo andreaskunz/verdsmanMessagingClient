@@ -13,12 +13,21 @@ public class VerdsmanMQTTMessagingClient extends VerdsmanMessagingClient impleme
 	private  MqttClient mqttclient;
 	private VMCMqttFactory mqttfactory;
 	private VMCFactory vmcFactory;
+	private VMCMessageJSONParser vmcMessageJSONParser;
 	
-	public VerdsmanMQTTMessagingClient(IVMCMessageReceiver receiver, MqttClient mqttclient, VMCMqttFactory mqttFactory, VMCFactory vmcFactory) {
+	public VerdsmanMQTTMessagingClient(
+			IVMCMessageReceiver receiver,
+			MqttClient mqttclient,
+			VMCMqttFactory mqttFactory,
+			VMCFactory vmcFactory,
+			VMCMessageJSONParser vmcMessageJSONParser) {
+		
 		super(receiver);
 		this.mqttclient = mqttclient;
 		this.mqttfactory = mqttFactory;
 		this.vmcFactory = vmcFactory;
+		this.vmcMessageJSONParser = vmcMessageJSONParser; 
+
 		try {
 			this.connectToMQTTBroker();
 		} catch (MqttSecurityException e) {
@@ -38,19 +47,41 @@ public class VerdsmanMQTTMessagingClient extends VerdsmanMessagingClient impleme
 	
 	
 	@Override
-	public void postMessage(EVMCTopic topic, VMCMessage message) {
+	public void postMessage(VMCMessage message) {
 		if(this.clientIsConnected()) {
 			MqttMessage mqttMessage = this.mqttfactory.createMqttMessage();
 			mqttMessage.setQos(2); // TODO use from config.
 			mqttMessage.setRetained(false); // TODO use from config.
+			
+			String messageString = null;
+			//TODO use generics instead of type decision making.
+			if(message instanceof VMCStringMessage) {
+				messageString = this.vmcMessageJSONParser.messageToJsonString((VMCStringMessage) message);
+			}
+			if(message instanceof VMCIntegerMessage) {
+				messageString = this.vmcMessageJSONParser.messageToJsonString((VMCIntegerMessage) message);
+			}
+			if(message instanceof VMCDoubleMessage) {
+				messageString = this.vmcMessageJSONParser.messageToJsonString((VMCDoubleMessage) message);
+			}
+			if(messageString == null) { //TODO throw appropriate Exception.
+				System.err.println("The VMCMessage has a unknown type! @VerdsmanMQTTMessagingClient::postMessage()");
+			}
+			
 			try {
-			mqttMessage.setPayload(message.toString().getBytes("UTF-8")); // TODO use from config.
+			mqttMessage.setPayload(messageString.getBytes("UTF-8")); // TODO use UTF-8 etc. from config.
 			} catch (UnsupportedEncodingException uee) {
 				//TODO handle exception here
 				uee.printStackTrace();
 			}
 			try {
-				mqttclient.publish("a38749324753845839124a/todo", mqttMessage);
+				String topic = message.topic;
+				if (topic == null || topic.length() == 0) {
+					System.err.println("topic to post to is invalid. @VerdsmanMQTTMessagingClient::postMessage()");
+					topic = "a38749324753845839124a"; //TODO solve this with throwing exception.
+				}
+				
+				mqttclient.publish(topic, mqttMessage);
 				System.out.println("message published");
 			} catch(MqttException me) {
 				//TODO handle exception here
@@ -61,10 +92,15 @@ public class VerdsmanMQTTMessagingClient extends VerdsmanMessagingClient impleme
 
 
 	@Override
-	protected void registerTopic(EVMCTopic topic) {
+	protected void registerTopic(String topic) {
 		if(this.clientIsConnected()) {
 			try {
-				this.mqttclient.subscribe("a38749324753845839124a/todo", 2); // TODO take real topic and QoS
+				String topicToSubscribe = topic;
+				if(topicToSubscribe == null || topicToSubscribe.length() == 0) {
+					System.err.println("topic to subscribe to is invalid. @VerdsmanMQTTMessagingClient::registerTopic()");
+					topicToSubscribe = "a38749324753845839124a"; //TODO solve this with throwing exception.
+				}
+				this.mqttclient.subscribe(topicToSubscribe, 2); // TODO take QoS from config.
 			} catch (MqttException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -81,7 +117,7 @@ public class VerdsmanMQTTMessagingClient extends VerdsmanMessagingClient impleme
 	}
 
 	@Override
-	protected void unregisterTopic(EVMCTopic topic) {
+	protected void unregisterTopic(String topic) {
 		System.err.println("method not implemented!");
 	}
 
@@ -102,11 +138,7 @@ public class VerdsmanMQTTMessagingClient extends VerdsmanMessagingClient impleme
 	@Override
 	public void messageArrived(String arg0, MqttMessage arg1) throws Exception { //TODO use parser
 		System.out.println("message Arrived");
-		VMCMessage message = this.vmcFactory.createVMCMessage();
-		message.from = this.mqttclient.getClientId();
-		message.to = "N/A";
-		message.topic = "a38749324753845839124a/todo";
-		message.content = new String(arg1.getPayload());  
-		this.messageArrived(message);
+		// parser will catch cases of an invalid MqttMessage.
+		this.messageArrived(this.vmcMessageJSONParser.jsonStringToMessage(new String(arg1.getPayload())));
 	}
 }

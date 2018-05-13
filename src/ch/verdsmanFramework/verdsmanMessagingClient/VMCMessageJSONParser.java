@@ -11,18 +11,22 @@ public class VMCMessageJSONParser {
 		this.factory = factory;
 	}
 	
-	public String messageToJsonString(VMCMessage message) {
-		JsonObject jsonObject = Json.object(); //TODO improve to ensure testability.
-		jsonObject.add("from", message.from);
-		jsonObject.add("to", message.to);
-		jsonObject.add("topic", message.topic);
-		
-		
-		// supporting primitive types only for now.
-		
-		//continue HERE
-		
-		return null;
+	public String messageToJsonString(VMCStringMessage message) { 
+		JsonObject jsonObject = this.createGenericJsonObject(message);
+		jsonObject.add("content", message.content);
+		return jsonObject.toString();
+	}
+	
+	public String messageToJsonString(VMCIntegerMessage message) {
+		JsonObject jsonObject = this.createGenericJsonObject(message);
+		jsonObject.add("content", message.content);
+		return jsonObject.toString();
+	}
+	
+	public String messageToJsonString(VMCDoubleMessage message) {
+		JsonObject jsonObject = this.createGenericJsonObject(message);
+		jsonObject.add("content", message.content);
+		return jsonObject.toString();
 	}
 	
 	public VMCMessage jsonStringToMessage(String jsonString) {
@@ -54,43 +58,49 @@ public class VMCMessageJSONParser {
 				obj.contains("topic") &&
 				obj.contains("contenttype") &&
 				obj.contains("content")) {
-			VMCMessage message = factory.createVMCMessage();
-			
-			message.from = obj.get("from").isString() ? obj.get("from").asString() : "N/A";
-			message.to = obj.get("to").isString() ? obj.get("to").asString() : "N/A";
-			message.topic = obj.get("topic").isString() ? obj.get("topic").asString() : "N/A";
-			message.contenttype = obj.get("contenttype").isString() ? obj.get("contenttype").asString() : "DEFAULT";
-			
+		
 			EVMCMessageContentType mContentType;
 			
+			String contenttype = obj.get("contenttype").isString() ? obj.get("contenttype").asString() : "DEFAULT";
 			try {
-				mContentType = EVMCMessageContentType.valueOf(message.contenttype);
+				mContentType = EVMCMessageContentType.valueOf(contenttype);
 			} catch(IllegalArgumentException iae) {
 				System.err.println("message content type is illegal! Using DEFAULT therefore. @VMCMessageJSONParser::buildVMCMessageObject(");
 				mContentType = EVMCMessageContentType.DEFAULT;
 			}
 			
+			
+			VMCMessage message = null;
+			
 			switch (mContentType) {
 				case STRING:
+					message = factory.createVMCStringMessage();
 					message.content = obj.get("content").isString() ? obj.get("content").asString() : null;
 					break;
 					
 				case INTEGER:
+					message = factory.createVMCIntegerMessage();
 					message.content = obj.get("content").isNumber() ? obj.get("content").asInt() : null;
 					break;
 					
 				case DOUBLE:
+					message = factory.createVMCDoubleMessage();
 					message.content = obj.get("content").isNumber() ? obj.get("content").asDouble() : null;
 					break;
 					
-				case VERDSMANCONFIG:
-					message.content = obj.get("content").isObject() ? obj.get("content").asObject() : null;
-					break;
-					
 				case DEFAULT:
+					message = factory.createVMCStringMessage();
 					message.content = "Content couldn't be evaluated due to unknown contenttype.";
 					break;
 			}
+			
+		
+			// fill the the generic fields.
+			message.from = obj.get("from").isString() ? obj.get("from").asString() : "N/A";
+			message.to = obj.get("to").isString() ? obj.get("to").asString() : "N/A";
+			message.topic = obj.get("topic").isString() ? obj.get("topic").asString() : "N/A";
+			message.contenttype = contenttype;
+			
 			
 			if(message.content != null) {
 				return message;
@@ -100,4 +110,12 @@ public class VMCMessageJSONParser {
 		return null;	 	
 	}
 	
+	private JsonObject createGenericJsonObject(VMCMessage message) {
+		JsonObject jsonObject = Json.object(); //TODO improve to ensure testability.
+		jsonObject.add("from", message.from);
+		jsonObject.add("to", message.to);
+		jsonObject.add("topic", message.topic);
+		jsonObject.add("contenttype", message.contenttype);
+		return jsonObject;
+	}
 }

@@ -7,11 +7,12 @@ public abstract class VerdsmanMessagingClient {
 		this.messageReceiver = receiver;
 	}
 	
-	protected abstract void postMessage(EVMCTopic topic, VMCMessage message);
+	//TODO use generics for this method to make it generic for VMCMessage subtypes.
+	protected abstract void postMessage(VMCMessage message);
 	
-	protected abstract void registerTopic(EVMCTopic topic);
+	protected abstract void registerTopic(String topic);
 	
-	protected abstract void unregisterTopic(EVMCTopic topic);
+	protected abstract void unregisterTopic(String topic);
 	
 	protected void messageArrived(VMCMessage message) {
 		messageReceiver.messageArrived(message);
