@@ -92,7 +92,7 @@ public class VerdsmanMQTTMessagingClient extends VerdsmanMessagingClient impleme
 
 
 	@Override
-	protected void registerTopic(String topic) {
+	public void registerTopic(String topic) {
 		if(this.clientIsConnected()) {
 			try {
 				String topicToSubscribe = topic;

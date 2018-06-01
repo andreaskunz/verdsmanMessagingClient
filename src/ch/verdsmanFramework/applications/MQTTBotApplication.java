@@ -14,7 +14,8 @@ import ch.verdsmanFramework.verdsmanMessagingClient.VerdsmanMessagingClient;
 public class MQTTBotApplication {
 
 	//settings
-	private final static String brokerURI = "tcp://broker.hivemq.com:1883";
+	//private final static String brokerURI = "tcp://broker.hivemq.com:1883";
+	private final static String brokerURI = "tcp://146.136.57.22:1883";
 	private final static String clientID = "S.A.I.N.T._No5_aka_VMC_bot";
 	private final static String botName = "main";
 	
