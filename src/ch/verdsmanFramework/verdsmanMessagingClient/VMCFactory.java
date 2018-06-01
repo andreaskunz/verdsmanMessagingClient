@@ -1,21 +1,34 @@
 package ch.verdsmanFramework.verdsmanMessagingClient;
 
+import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCDoubleMessage;
+import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCIntegerMessage;
+import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCMessageEnvelope;
+import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCStringMessage;
+
 public class VMCFactory {
 
-	public VMCMessage createVMCMessage() {
-		return new VMCMessage();
+	public UMCMessageEnvelope createVMCMessage() {
+		return new UMCMessageEnvelope();
 	}
 	
-	public VMCStringMessage createVMCStringMessage() {
-		return new VMCStringMessage();
+	public UMCStringMessage createUMCStringMessage() {
+		return new UMCStringMessage();
 	}
 	
-	public VMCIntegerMessage createVMCIntegerMessage() {
-		return new VMCIntegerMessage();
+	public UMCMessageEnvelope createUMCMessageEnvelope(String from, String to, String topic) {
+		UMCMessageEnvelope env = new UMCMessageEnvelope();
+		env.from = from;
+		env.to = to;
+		env.topic = topic;
+		return env;
 	}
 	
-	public VMCDoubleMessage createVMCDoubleMessage() {
-		return new VMCDoubleMessage();
+	public UMCIntegerMessage createVMCIntegerMessage() {
+		return new UMCIntegerMessage();
+	}
+	
+	public UMCDoubleMessage createVMCDoubleMessage() {
+		return new UMCDoubleMessage();
 	}
 	
 	public VMCMessageJSONParser createVMCMessageJSONParser() {

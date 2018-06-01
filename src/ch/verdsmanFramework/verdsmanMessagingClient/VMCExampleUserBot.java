@@ -2,6 +2,9 @@ package ch.verdsmanFramework.verdsmanMessagingClient;
 
 import java.util.Date;
 
+import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCMessageEnvelope;
+import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCStringMessage;
+
 public class VMCExampleUserBot implements IVMCMessageReceiver {
 	private String name;
 	private VerdsmanMessagingClient messagingClient = null;
@@ -27,20 +30,19 @@ public class VMCExampleUserBot implements IVMCMessageReceiver {
 	}
 	
 	@Override
-	public void messageArrived(VMCMessage message) {
+	public void messageArrived(UMCMessageEnvelope message) {
 		System.out.println(this.parser.messageToPrintableString(message));
 	}
 	
 	public void startBot() {
 		Runnable botTask = () -> {
 			while(true) {
-				VMCStringMessage message = this.vmcFactory.createVMCStringMessage();
-				message.content = this.name  + " : " + new Date().toString();
-				message.from = "a Bot";
-				message.topic = "vmcFunTopic";
-				message.to = "all interested parties";
-				message.contenttype = "STRING";
-				this.messagingClient.postMessage(message);
+				UMCStringMessage message = this.vmcFactory.createUMCStringMessage();
+				UMCMessageEnvelope envelope = this.vmcFactory.createUMCMessageEnvelope("a Bot", "all interested parties", "vmcFunTopic");
+				message.value = this.name  + " : " + new Date().toString();
+				envelope.message = message;
+				envelope.parsertype = "UMCStringMessage";
+				this.messagingClient.postMessage(envelope);
 				System.out.println("Bot: message posted");
 				try {
 					Thread.sleep(2000);

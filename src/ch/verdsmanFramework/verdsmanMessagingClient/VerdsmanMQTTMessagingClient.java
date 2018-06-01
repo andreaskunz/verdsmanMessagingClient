@@ -7,6 +7,12 @@ import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttSecurityException;
+
+import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCDoubleMessage;
+import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCIntegerMessage;
+import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCMessageEnvelope;
+import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCStringMessage;
+
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 public class VerdsmanMQTTMessagingClient extends VerdsmanMessagingClient implements MqttCallback {
@@ -47,7 +53,7 @@ public class VerdsmanMQTTMessagingClient extends VerdsmanMessagingClient impleme
 	
 	
 	@Override
-	public void postMessage(VMCMessage message) {
+	public void postMessage(UMCMessageEnvelope message) {
 		if(this.clientIsConnected()) {
 			MqttMessage mqttMessage = this.mqttfactory.createMqttMessage();
 			mqttMessage.setQos(2); // TODO use from config.
@@ -55,14 +61,14 @@ public class VerdsmanMQTTMessagingClient extends VerdsmanMessagingClient impleme
 			
 			String messageString = null;
 			//TODO use generics instead of type decision making.
-			if(message instanceof VMCStringMessage) {
-				messageString = this.vmcMessageJSONParser.messageToJsonString((VMCStringMessage) message);
+			if(message instanceof UMCStringMessage) {
+				messageString = this.vmcMessageJSONParser.messageToJsonString((UMCStringMessage) message);
 			}
-			if(message instanceof VMCIntegerMessage) {
-				messageString = this.vmcMessageJSONParser.messageToJsonString((VMCIntegerMessage) message);
+			if(message instanceof UMCIntegerMessage) {
+				messageString = this.vmcMessageJSONParser.messageToJsonString((UMCIntegerMessage) message);
 			}
-			if(message instanceof VMCDoubleMessage) {
-				messageString = this.vmcMessageJSONParser.messageToJsonString((VMCDoubleMessage) message);
+			if(message instanceof UMCDoubleMessage) {
+				messageString = this.vmcMessageJSONParser.messageToJsonString((UMCDoubleMessage) message);
 			}
 			if(messageString == null) { //TODO throw appropriate Exception.
 				System.err.println("The VMCMessage has a unknown type! @VerdsmanMQTTMessagingClient::postMessage()");

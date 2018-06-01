@@ -4,6 +4,11 @@ import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 
+import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCDoubleMessage;
+import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCIntegerMessage;
+import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCMessageEnvelope;
+import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCStringMessage;
+
 public class VMCMessageJSONParser {
 	private VMCFactory factory;
 		
@@ -11,27 +16,27 @@ public class VMCMessageJSONParser {
 		this.factory = factory;
 	}
 	
-	public String messageToJsonString(VMCStringMessage message) { 
+	public String messageToJsonString(UMCStringMessage message) { 
 		JsonObject jsonObject = this.createGenericJsonObject(message);
 		jsonObject.add("content", message.content);
 		return jsonObject.toString();
 	}
 	
-	public String messageToJsonString(VMCIntegerMessage message) {
+	public String messageToJsonString(UMCIntegerMessage message) {
 		JsonObject jsonObject = this.createGenericJsonObject(message);
 		jsonObject.add("content", message.content);
 		return jsonObject.toString();
 	}
 	
-	public String messageToJsonString(VMCDoubleMessage message) {
+	public String messageToJsonString(UMCDoubleMessage message) {
 		JsonObject jsonObject = this.createGenericJsonObject(message);
 		jsonObject.add("content", message.content);
 		return jsonObject.toString();
 	}
 	
-	public VMCMessage jsonStringToMessage(String jsonString) {
+	public UMCMessageEnvelope jsonStringToMessage(String jsonString) {
 		JsonValue value = Json.parse(jsonString); //TODO improve to ensure testability.
-		VMCMessage message;
+		UMCMessageEnvelope message;
 		if(value.isObject()) {
 			message = buildVMCMessageObject(value.asObject());
 		} else message = null;
@@ -43,7 +48,7 @@ public class VMCMessageJSONParser {
 			return message;	
 	}
 	
-	public String messageToPrintableString(VMCMessage message) {
+	public String messageToPrintableString(UMCMessageEnvelope message) {
 		return "---------------- Message ------------------------------------------------\n" +
 			   "From: " + message.from + "\n" +
 			   "To: " + message.to + "\n" +
@@ -52,7 +57,7 @@ public class VMCMessageJSONParser {
 	}
 	
 	
-	public VMCMessage buildVMCMessageObject(JsonObject obj) {
+	public UMCMessageEnvelope buildVMCMessageObject(JsonObject obj) {
 		if(obj.contains("from") && 
 				obj.contains("to") && 
 				obj.contains("topic") &&
@@ -70,11 +75,11 @@ public class VMCMessageJSONParser {
 			}
 			
 			
-			VMCMessage message = null;
+			UMCMessageEnvelope message = null;
 			
 			switch (mContentType) {
 				case STRING:
-					message = factory.createVMCStringMessage();
+					message = factory.createUMCStringMessage();
 					message.content = obj.get("content").isString() ? obj.get("content").asString() : null;
 					break;
 					
@@ -89,7 +94,7 @@ public class VMCMessageJSONParser {
 					break;
 					
 				case DEFAULT:
-					message = factory.createVMCStringMessage();
+					message = factory.createUMCStringMessage();
 					message.content = "Content couldn't be evaluated due to unknown contenttype.";
 					break;
 			}
@@ -110,7 +115,7 @@ public class VMCMessageJSONParser {
 		return null;	 	
 	}
 	
-	private JsonObject createGenericJsonObject(VMCMessage message) {
+	private JsonObject createGenericJsonObject(UMCMessageEnvelope message) {
 		JsonObject jsonObject = Json.object(); //TODO improve to ensure testability.
 		jsonObject.add("from", message.from);
 		jsonObject.add("to", message.to);
