@@ -1,7 +1,7 @@
 package ch.verdsmanFramework.verdsmanMessagingClient;
 
-import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCMessageEnvelope;
+import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCMessage;
 
 public interface IVMCMessageReceiver {
-	void messageArrived(UMCMessageEnvelope message);
+	void messageArrived(UMCMessage message);
 }

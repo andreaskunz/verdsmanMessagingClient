@@ -2,19 +2,18 @@ package ch.verdsmanFramework.verdsmanMessagingClient;
 
 import java.util.Date;
 
-import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCMessageEnvelope;
-import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCStringMessage;
+import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCCommandMessage;
+import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCMessage;
+import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCMessageFactory;
 
 public class VMCExampleUserBot implements IVMCMessageReceiver {
 	private String name;
 	private VerdsmanMessagingClient messagingClient = null;
-	private VMCFactory vmcFactory;
-	private VMCMessageJSONParser parser;
+	private UMCMessageFactory messageFactory;
 	
-	public VMCExampleUserBot(String name, VMCFactory vmcFactory) {
+	public VMCExampleUserBot(String name, UMCMessageFactory messageFactory) {
 		this.name = name;
-		this.vmcFactory = vmcFactory;
-		this.parser = this.vmcFactory.createVMCMessageJSONParser();
+		this.messageFactory = messageFactory;
 	}
 	
 	public void setVerdsmanMessagingClient(VerdsmanMessagingClient messagingClient) {
@@ -30,22 +29,20 @@ public class VMCExampleUserBot implements IVMCMessageReceiver {
 	}
 	
 	@Override
-	public void messageArrived(UMCMessageEnvelope message) {
-		System.out.println(this.parser.messageToPrintableString(message));
+	public void messageArrived(UMCMessage message) {
+		System.out.println(((UMCCommandMessage) message).stringParams[0]);
 	}
 	
 	public void startBot() {
 		Runnable botTask = () -> {
 			while(true) {
-				UMCStringMessage message = this.vmcFactory.createUMCStringMessage();
-				UMCMessageEnvelope envelope = this.vmcFactory.createUMCMessageEnvelope("a Bot", "all interested parties", "vmcFunTopic");
-				message.value = this.name  + " : " + new Date().toString();
-				envelope.message = message;
-				envelope.parsertype = "UMCStringMessage";
-				this.messagingClient.postMessage(envelope);
+				UMCCommandMessage commandMessage = this.messageFactory.createUMCCommandMessage("bot", "all", "vmcFunTopic","UMCCommandMessageParser");
+				commandMessage.command = "ping";
+				commandMessage.stringParams= new String[] {this.name  + " : " + new Date().toString()};
+				this.messagingClient.postMessage(commandMessage);
 				System.out.println("Bot: message posted");
 				try {
-					Thread.sleep(2000);
+					Thread.sleep(10000);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

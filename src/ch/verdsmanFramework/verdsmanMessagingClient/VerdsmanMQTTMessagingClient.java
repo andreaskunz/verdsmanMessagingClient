@@ -8,31 +8,29 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttSecurityException;
 
-import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCDoubleMessage;
-import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCIntegerMessage;
-import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCMessageEnvelope;
-import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCStringMessage;
+import ch.verdsmanFramework.verdsmanMessagingClient.messageObjectParsers.IUMCMessageParser;
+import ch.verdsmanFramework.verdsmanMessagingClient.messageObjectParsers.UMCMessageParserPool;
+import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCCommandMessage;
+import ch.verdsmanFramework.verdsmanMessagingClient.messageObjects.UMCMessage;
 
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 public class VerdsmanMQTTMessagingClient extends VerdsmanMessagingClient implements MqttCallback {
 	private  MqttClient mqttclient;
 	private VMCMqttFactory mqttfactory;
-	private VMCFactory vmcFactory;
-	private VMCMessageJSONParser vmcMessageJSONParser;
+	private UMCMessageParserPool messageParserPool;
 	
 	public VerdsmanMQTTMessagingClient(
 			IVMCMessageReceiver receiver,
 			MqttClient mqttclient,
 			VMCMqttFactory mqttFactory,
 			VMCFactory vmcFactory,
-			VMCMessageJSONParser vmcMessageJSONParser) {
+			UMCMessageParserPool messageParserPool) {
 		
 		super(receiver);
 		this.mqttclient = mqttclient;
 		this.mqttfactory = mqttFactory;
-		this.vmcFactory = vmcFactory;
-		this.vmcMessageJSONParser = vmcMessageJSONParser; 
+		this.messageParserPool = messageParserPool;
 
 		try {
 			this.connectToMQTTBroker();
@@ -53,32 +51,39 @@ public class VerdsmanMQTTMessagingClient extends VerdsmanMessagingClient impleme
 	
 	
 	@Override
-	public void postMessage(UMCMessageEnvelope message) {
+	public void postMessage(UMCMessage message) {
 		if(this.clientIsConnected()) {
 			MqttMessage mqttMessage = this.mqttfactory.createMqttMessage();
 			mqttMessage.setQos(2); // TODO use from config.
 			mqttMessage.setRetained(false); // TODO use from config.
 			
 			String messageString = null;
-			//TODO use generics instead of type decision making.
-			if(message instanceof UMCStringMessage) {
-				messageString = this.vmcMessageJSONParser.messageToJsonString((UMCStringMessage) message);
+			IUMCMessageParser parser = null;
+			
+			try {
+				parser = this.messageParserPool.getParser(message.parsertype);
+			} catch (Exception e) {
+				System.err.println("could not get a matching parser from parser pool.\npost failed.\n @VerdsmanMQTTMessagingClient::postMessage()");
+				e.printStackTrace();
+				return;
 			}
-			if(message instanceof UMCIntegerMessage) {
-				messageString = this.vmcMessageJSONParser.messageToJsonString((UMCIntegerMessage) message);
-			}
-			if(message instanceof UMCDoubleMessage) {
-				messageString = this.vmcMessageJSONParser.messageToJsonString((UMCDoubleMessage) message);
-			}
-			if(messageString == null) { //TODO throw appropriate Exception.
-				System.err.println("The VMCMessage has a unknown type! @VerdsmanMQTTMessagingClient::postMessage()");
-			}
+			
+			if (parser != null) { //TODO check if this case can really happen.
+				try {
+					messageString = parser.parseObject(message);
+				} catch (Exception e) {
+					System.err.println("message was not parsed.\npost failed.\n @VerdsmanMQTTMessagingClient::postMessage()");
+					e.printStackTrace();
+				}
+			}			
 			
 			try {
 			mqttMessage.setPayload(messageString.getBytes("UTF-8")); // TODO use UTF-8 etc. from config.
 			} catch (UnsupportedEncodingException uee) {
 				//TODO handle exception here
+				System.err.println("message string could not be encoded into a sequence of bytes.\npost failed.\n @VerdsmanMQTTMessagingClient::postMessage()");
 				uee.printStackTrace();
+				return;
 			}
 			try {
 				String topic = message.topic;
@@ -90,8 +95,9 @@ public class VerdsmanMQTTMessagingClient extends VerdsmanMessagingClient impleme
 				mqttclient.publish(topic, mqttMessage);
 				System.out.println("message published");
 			} catch(MqttException me) {
-				//TODO handle exception here
+				System.err.println("MQTT message could not be published.\npost failed.\n @VerdsmanMQTTMessagingClient::postMessage()");
 				me.printStackTrace();
+				return;
 			}	
 		}
 	}
@@ -145,6 +151,30 @@ public class VerdsmanMQTTMessagingClient extends VerdsmanMessagingClient impleme
 	public void messageArrived(String arg0, MqttMessage arg1) throws Exception { //TODO use parser
 		System.out.println("message Arrived");
 		// parser will catch cases of an invalid MqttMessage.
-		this.messageArrived(this.vmcMessageJSONParser.jsonStringToMessage(new String(arg1.getPayload())));
+		//TODO we need to improve pasers with a base class parsing UMCMessages only. So we can then decide which parser
+		// we will need to parse the concrete message.
+		// for now we assume there are only UMCCommandMessages sent..
+		IUMCMessageParser parser = null;
+		UMCCommandMessage message = null;
+		try {
+			parser = this.messageParserPool.getParser("UMCCommandMessageParser");
+		} catch (Exception e) {
+			System.err.println("could not get a matching parser from parser pool.\npost failed.\n @VerdsmanMQTTMessagingClient::postMessage()");
+			e.printStackTrace();
+			return;
+		}
+		
+		if (parser != null) { //TODO check if this case can really happen.
+			try {
+				String rawMessage = new String(arg1.getPayload());
+				System.out.println("raw message: " + rawMessage);
+				message = (UMCCommandMessage) parser.parseString(rawMessage);
+			} catch (Exception e) {
+				System.err.println("message was not parsed.\npost failed.\n @VerdsmanMQTTMessagingClient::postMessage()");
+				e.printStackTrace();
+			}
+		}	
+		System.out.println("message from: " + message.from);
+		this.deliverMessage(message);
 	}
 }

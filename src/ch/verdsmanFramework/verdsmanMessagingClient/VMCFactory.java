@@ -15,12 +15,12 @@ public class VMCFactory {
 		return new UMCStringMessage();
 	}
 	
-	public UMCMessageEnvelope createUMCMessageEnvelope(String from, String to, String topic) {
-		UMCMessageEnvelope env = new UMCMessageEnvelope();
-		env.from = from;
-		env.to = to;
-		env.topic = topic;
-		return env;
+	public UMCStringMessage createUMCStringMessage(String from, String to, String topic) {
+		UMCStringMessage stringMessage = new UMCStringMessage();
+		stringMessage.from = from;
+		stringMessage.to = to;
+		stringMessage.topic = topic;
+		return stringMessage;
 	}
 	
 	public UMCIntegerMessage createVMCIntegerMessage() {
@@ -29,9 +29,5 @@ public class VMCFactory {
 	
 	public UMCDoubleMessage createVMCDoubleMessage() {
 		return new UMCDoubleMessage();
-	}
-	
-	public VMCMessageJSONParser createVMCMessageJSONParser() {
-		return new VMCMessageJSONParser(this);
 	}
 }
